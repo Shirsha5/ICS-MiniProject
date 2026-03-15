@@ -1,0 +1,9 @@
+Dataset,Model,Top-10 Overlap,Jaccard,Spearman Rank Corr,Spearman p-value,SHAP Time (s),LIME Time (s)
+UNSW-NB15,RandomForest,5,0.3333,0.3829,0.012329,63.65,7.76
+UNSW-NB15,XGBoost,5,0.3333,0.3616,0.018611,0.26,15.77
+UNSW-NB15,DecisionTree,4,0.25,0.1557,0.324936,0.33,4.31
+UNSW-NB15,GradientBoosting,5,0.3333,0.4905,0.000975,0.05,4.6
+NSL-KDD,RandomForest,5,0.3333,-0.0331,0.837219,4.23,6.18
+NSL-KDD,XGBoost,2,0.1111,-0.2362,0.137011,0.03,5.42
+NSL-KDD,DecisionTree,2,0.1111,-0.2044,0.199975,0.03,3.58
+NSL-KDD,GradientBoosting,1,0.0526,-0.2756,0.081134,0.07,3.71

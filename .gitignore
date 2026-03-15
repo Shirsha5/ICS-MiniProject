@@ -14,7 +14,8 @@ venv/
 # Dataset files
 datasets/
 
-# Model files (optional if large)
+# Trained model files
+models/
 *.pkl
 
 # OS files
