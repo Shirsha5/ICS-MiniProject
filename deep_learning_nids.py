@@ -12,7 +12,7 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc 
 import shap
-
+from lime.lime_tabular import LimeTabularExplainer  #adding only one explanation of lime to not overcomplicate
 
 print("Loading NSL-KDD dataset...")
 
@@ -137,6 +137,7 @@ print("Accuracy:", acc)
 print("Precision:", prec)
 print("Recall:", rec)
 print("F1 Score:", f1)
+print("Train Time (s):", train_time)
 
 #SHAP explanation for MLP
 print("Generating SHAP explanations...")
@@ -153,6 +154,35 @@ plt.savefig("results/shap_dl_summary.png")
 plt.close()
 
 print("SHAP summary saved.")
+
+#LIME explanation for MLP
+print("Generating LIME explanation...")
+
+from lime.lime_tabular import LimeTabularExplainer
+
+# Wrapper to convert (n,1) → (n,2)
+def predict_proba_wrapper(X):
+    probs = model.predict(X)
+    return np.hstack([1 - probs, probs])  # [P(0), P(1)]
+
+explainer = LimeTabularExplainer(
+    X_train,
+    mode="classification",
+    feature_names=[f"f{i}" for i in range(X_train.shape[1])]
+)
+
+exp = explainer.explain_instance(
+    X_test[0],
+    predict_proba_wrapper,   
+    num_features=10
+)
+
+fig = exp.as_pyplot_figure()
+fig.savefig("results/lime_dl_explanation.png")
+
+plt.close()
+
+print("LIME explanation saved.")
 
 results = pd.DataFrame({
     "Model": ["Deep Learning MLP"],
