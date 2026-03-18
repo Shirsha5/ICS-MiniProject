@@ -1,9 +1,54 @@
 # Stability and Reliability of Explainable AI (XAI) in ML-Based Network Intrusion Detection Systems
 
 ## Overview
-This project evaluates the **stability and reliability** of Explainable AI methods (SHAP, LIME) applied to machine-learning-based Network Intrusion Detection Systems (NIDS). It compares explanation stability across multiple ML models, datasets, noise levels, and stability metrics.
+This project **evaluates** (demonstrates with evidence) the **stability** and **reliability** of Explainable AI (SHAP, LIME) on ML-based NIDS across models, datasets, and noise levels. It does not claim mathematical “proof” in the formal sense; the report should phrase findings as *we evaluate / we show / evidence suggests* unless you add formal proofs.
 
-Additionally, a deep learning based intrusion detection model is implemented to explore the performance of neural networks on the NSL-KDD dataset.
+---
+
+## Do we have “explanation similarity under perturbation” + statistical rigour?
+
+| What | Where |
+|------|--------|
+| **Stability = similarity of explanations before vs after perturbation** | **Full_Analysis.ipynb** — Gaussian noise on inputs; cosine, Jaccard, Spearman, sign agreement for SHAP and LIME. |
+| **Mean ± std (single run)** | **results/stability_results.csv** (from notebook). |
+| **Multi-seed + 95% CI across runs** | **`python stability_multiseed.py`** → **results/stability_multiseed_results.csv** (mean ± CI of mean SHAP cosine per noise level, across seeds 42–44). |
+| **Paired statistical tests** | Same script → **results/stability_statistical_tests.csv**: (1) paired *t*-test: SHAP cosine at noise 0.01 vs 0.02 (same samples); (2) paired *t*-test: SHAP vs LIME cosine at noise 0.02 (subset, slower). |
+
+Run **Full_Analysis.ipynb** first (train models), then:
+
+```bash
+python stability_multiseed.py
+python plot_extended_results.py   # optional summary figure for new components
+```
+
+---
+
+## Do we need gradient-based XAI (Integrated Gradients, etc.)?
+
+**No, not required** for the core claim. The project already compares two major explainers (SHAP, LIME) with stability metrics. Gradient-based methods are **optional** if you want an extra subsection (“model-specific vs model-agnostic explainers”).
+
+---
+
+## Do we need a “cross-dataset” analysis?
+
+**You already have two datasets** (UNSW-NB15 and NSL-KDD) in the main notebook — that *is* cross-dataset comparison for model performance and stability. A separate “consistency score” table is **optional**; you can compare F1 and stability side-by-side from existing CSVs/plots.
+
+---
+
+## New scripts — results & visualisation
+
+The **new** pipelines are **not** inside Full_Analysis.ipynb; they are separate scripts. Outputs:
+
+| Script | CSV / other | Figures |
+|--------|-------------|---------|
+| `multiclass_attack_analysis.py` | per_attack_metrics_multiclass.csv, per_attack_top_shap_features.csv, multiclass_two_stage_comparison.csv | multiclass_confusion_matrix.png (if ≤15 classes) |
+| `autoencoder_nids.py` | autoencoder_results.csv | autoencoder_roc.png |
+| `ensemble_stacking.py` | ensemble_stacking_results.csv | — |
+| `plot_extended_results.py` | — | **extended_components_summary.png** (bars for multiclass/two-stage, AE, stacking) |
+
+Run the three analysis scripts first, then `plot_extended_results.py` for one combined figure.
+
+---
 
 ## Datasets
 | Dataset | Records | Features | Source |
@@ -11,143 +56,108 @@ Additionally, a deep learning based intrusion detection model is implemented to 
 | UNSW-NB15 | 175,341 | 42 | UNSW Sydney |
 | NSL-KDD | 125,973 + 22,544 | 41 | UNB Canada |
 
-## ML Models
-- Random Forest
-- XGBoost
-- Decision Tree
-- Gradient Boosting
+## ML Models (binary NIDS)
+Random Forest, XGBoost, Decision Tree, Gradient Boosting.
 
-## Deep Learning Model (MLP + Explainable AI)
-
-In addition to traditional machine learning models, a deep learning-based Network Intrusion Detection System (NIDS) was implemented using a Multi-Layer Perceptron (MLP) on the NSL-KDD dataset.
-
-### Architecture
-Input Layer → 128 Dense (ReLU) → Dropout (0.3) →  
-64 Dense (ReLU) → Dropout (0.3) →  
-Output Layer (Sigmoid)
-
-### Dataset Used
-- NSL-KDD
-
-### Evaluation Metrics
-- Accuracy
-- Precision
-- Recall
-- F1 Score
-- ROC-AUC
-
----
-
-## Deep Learning Results & Interpretability
-
-### Confusion Matrix
-![Confusion Matrix](results/confusion_matrix_dl.png)
-
-**Insight:**  
-The model achieves strong classification performance with relatively low false positives and false negatives, indicating effective intrusion detection capability.
-
----
-
-### Training Loss Curve
-![Training Loss](results/training_loss_dl.png)
-
-**Insight:**  
-Training and validation loss decrease smoothly, suggesting stable learning with minimal overfitting.
-
----
-
-### ROC-AUC Curve
-![ROC Curve](results/dl_roc_curve.png)
-
-**Insight:**  
-The ROC curve shows strong separability between attack and normal traffic, with a high AUC score indicating robust classification performance.
-
----
-
-### SHAP Feature Importance (Global Explainability)
-![SHAP](results/shap_dl_summary.png)
-
-**Insight:**  
-SHAP provides consistent global feature importance. It highlights the most influential features driving predictions and demonstrates stable interpretability.
-
----
-
-### LIME Explanation (Local Explainability)
-![LIME](results/lime_dl_explanation.png)
-
-**Insight:**  
-LIME explains individual predictions effectively but is sensitive to small input perturbations. Compared to SHAP, it is less stable but useful for local interpretability.
-
----
-
-### Key Observations (Deep Learning)
-- MLP achieves competitive performance on the NSL-KDD dataset  
-- ROC-AUC confirms strong classification capability  
-- SHAP explanations are more stable and reliable  
-- LIME provides local insights but lacks consistency  
-- Deep learning complements traditional ML models in intrusion detection
+## Deep Learning (NSL-KDD)
+MLP in **deep_learning_nids.py**; SHAP + LIME. See **results/** for confusion matrix, ROC, training loss, shap_dl_summary, lime_dl_explanation.
 
 ## XAI Methods
-- **SHAP** (SHapley Additive exPlanations) — TreeExplainer
-- **LIME** (Local Interpretable Model-Agnostic Explanations)
+- **SHAP** (TreeExplainer for tree models)
+- **LIME**
 
-## Stability Metrics
-- Cosine Similarity
-- Jaccard Similarity (Top-K feature overlap)
-- Spearman Rank Correlation
-- Feature Sign Agreement
+## Stability metrics (notebook)
+Cosine similarity, Jaccard@5, Spearman, sign agreement; noise σ ∈ {0.01, 0.02, 0.05, 0.10}.
 
-## Machine Learning Results & Interpretability 
+## Main figures (from Full_Analysis)
+- compare_model_performance.png, compare_f1_heatmap.png, compare_training_time.png  
+- compare_xai_agreement.png, compare_xai_runtime.png  
+- compare_stability_all.png, compare_stability_heatmap.png, compare_stability_metrics.png  
 
-### Model Performance Comparison
-![Model Performance](results/compare_model_performance.png)
+## Key findings (example wording for report)
+1. SHAP tends to be more stable than LIME under perturbation (see plots + optional *p*-values in stability_statistical_tests.csv).  
+2. Stability drops as noise increases.  
+3. LIME can show weak agreement on NSL-KDD — discuss as reliability limitation.  
+4. Use **stability_multiseed** results to report uncertainty across runs.
 
-### F1-Score Heatmap
-![F1 Heatmap](results/compare_f1_heatmap.png)
+---
 
-### Training Time Comparison
-![Training Time](results/compare_training_time.png)
-
-### SHAP vs LIME Feature Agreement
-![XAI Agreement](results/compare_xai_agreement.png)
-
-### XAI Runtime Comparison
-![XAI Runtime](results/compare_xai_runtime.png)
-
-### Explanation Stability vs Perturbation Noise
-![Stability All](results/compare_stability_all.png)
-
-### Stability Heatmap (SHAP vs LIME at noise=0.02)
-![Stability Heatmap](results/compare_stability_heatmap.png)
-
-### Multi-Metric Stability Comparison
-![Stability Metrics](results/compare_stability_metrics.png)
-
-## Key Findings & Observations
-1. **SHAP is significantly more stable than LIME** — cosine similarity ~0.7 vs ~0.3 under perturbation
-2. **Stability degrades with noise** for both methods, as expected
-3. **GradientBoosting** has the most stable SHAP explanations on UNSW-NB15 (cos=0.83)
-4. **LIME shows near-zero or negative correlations** on NSL-KDD — a critical reliability concern
-5. **Correct predictions** tend to have more stable explanations than incorrect ones
-
-## Project Structure
+## Project structure
 ```
-├── datasets/               # UNSW-NB15 and NSL-KDD CSVs (gitignored)
-├── models/                 # Trained model .pkl files (gitignored)
-├── results/                # All output tables, plots, figures
-├── preprocessing.py        # Data loading, encoding, scaling
-├── download_datasets.py    # Download datasets
-├── deep_learning_nids.py   # Deep learning intrusion detection model
-├── Full_Analysis.ipynb     # Complete analysis notebook
+├── datasets/
+├── models/
+├── results/                    # All plots + CSVs (including stability_multiseed, statistical_tests, extended)
+├── ishita_xai/                 # Extended XAI (SVM, KNN, MLP)
+├── preprocessing.py            # + load_nsl_kdd_multiclass, load_unsw_nb15_multiclass
+├── download_datasets.py
+├── deep_learning_nids.py
+├── multiclass_attack_analysis.py
+├── autoencoder_nids.py
+├── ensemble_stacking.py
+├── stability_multiseed.py      # Multi-seed CI + paired t-tests
+├── plot_extended_results.py    # extended_components_summary.png
+├── Full_Analysis.ipynb
 ├── requirements.txt
 └── README.md
 ```
 
-## How to Run
+## Python version and setup
 
-```bash
+**Recommended: Python 3.11** (3.10–3.12 also supported). Python 3.14 works but some optional packages may differ.
+
+Create a virtual environment and install dependencies:
+
+```powershell
+# Windows (PowerShell)
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python download_datasets.py
 ```
 
-Then open `Full_Analysis.ipynb` in Jupyter or VS Code and **Run All**.
+```bash
+# Linux / macOS
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Run the entire project
+
+Run these steps in order so the full pipeline (data → training → analysis scripts) completes:
+
+1. **Install dependencies** (use the same Python/venv for all steps)
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Download datasets**
+   ```bash
+   python download_datasets.py
+   ```
+
+3. **Train models** — open **Full_Analysis.ipynb** and **Run All**. This trains and saves the models used by the scripts below.
+
+4. **Run the analysis scripts** (multiclass, autoencoder, stacking, stability, summary plot)
+   ```bash
+   python multiclass_attack_analysis.py
+   python autoencoder_nids.py
+   python ensemble_stacking.py
+   python stability_multiseed.py
+   python plot_extended_results.py
+   ```
+
+Results go to `results/`; models to `models/`.
+
+---
+
+## GPU and speed
+
+| Component | GPU? | Why |
+|-----------|------|-----|
+| **Autoencoder** (`autoencoder_nids.py`) | **Yes** (optional) | If TensorFlow is installed and a GPU is available, the script uses a Keras autoencoder on GPU. Otherwise it falls back to PCA (CPU). Install `tensorflow` for GPU support (Python 3.10–3.12). |
+| **XGBoost** (Full_Analysis.ipynb) | **Yes** (optional) | The notebook tries `device='cuda'` and `tree_method='hist'` for XGBoost; if CUDA is available, training uses the GPU. Otherwise CPU is used. |
+| **SHAP** (TreeExplainer) | No | Tree SHAP is already fast on CPU; GPU explainers are for deep models, not tree models. |
+| **LIME** (stability_multiseed.py) | **No** | LIME runs many local model evaluations per explanation; the library is CPU-only. The script uses a small subset (e.g. 10 samples) and fewer LIME samples per explanation (500) so the SHAP-vs-LIME paired test finishes in a few minutes. |
+| **Random Forest / GradientBoosting** | No | sklearn implementations are CPU-only. |
+
+To speed things up: install `tensorflow` (and CUDA/cuDNN if you have an NVIDIA GPU) for the autoencoder; use a machine with a GPU and CUDA-enabled XGBoost for faster XGBoost training in the notebook.
