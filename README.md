@@ -17,16 +17,11 @@ Additionally, a deep learning based intrusion detection model is implemented to 
 - Decision Tree
 - Gradient Boosting
 
-## Deep Learning Model
+## Deep Learning Model (MLP + Explainable AI)
 
-In addition to traditional machine learning models, a deep learning based
-Network Intrusion Detection model was implemented to evaluate the capability
-of neural networks for intrusion detection tasks.
+In addition to traditional machine learning models, a deep learning-based Network Intrusion Detection System (NIDS) was implemented using a Multi-Layer Perceptron (MLP) on the NSL-KDD dataset.
 
 ### Architecture
-A Multi-Layer Perceptron (MLP) neural network was implemented using
-TensorFlow/Keras with the following structure:
-
 Input Layer → 128 Dense (ReLU) → Dropout (0.3) →  
 64 Dense (ReLU) → Dropout (0.3) →  
 Output Layer (Sigmoid)
@@ -39,14 +34,58 @@ Output Layer (Sigmoid)
 - Precision
 - Recall
 - F1 Score
+- ROC-AUC
 
-### Outputs Generated
+---
 
-The deep learning pipeline generates the following outputs in the `results/` directory:
+## Deep Learning Results & Interpretability
 
-- `deep_learning_results.csv` — evaluation metrics
-- `confusion_matrix_dl.png` — confusion matrix visualization
-- `training_loss_dl.png` — training vs validation loss curve
+### Confusion Matrix
+![Confusion Matrix](results/confusion_matrix_dl.png)
+
+**Insight:**  
+The model achieves strong classification performance with relatively low false positives and false negatives, indicating effective intrusion detection capability.
+
+---
+
+### Training Loss Curve
+![Training Loss](results/training_loss_dl.png)
+
+**Insight:**  
+Training and validation loss decrease smoothly, suggesting stable learning with minimal overfitting.
+
+---
+
+### ROC-AUC Curve
+![ROC Curve](results/dl_roc_curve.png)
+
+**Insight:**  
+The ROC curve shows strong separability between attack and normal traffic, with a high AUC score indicating robust classification performance.
+
+---
+
+### SHAP Feature Importance (Global Explainability)
+![SHAP](results/shap_dl_summary.png)
+
+**Insight:**  
+SHAP provides consistent global feature importance. It highlights the most influential features driving predictions and demonstrates stable interpretability.
+
+---
+
+### LIME Explanation (Local Explainability)
+![LIME](results/lime_dl_explanation.png)
+
+**Insight:**  
+LIME explains individual predictions effectively but is sensitive to small input perturbations. Compared to SHAP, it is less stable but useful for local interpretability.
+
+---
+
+### Key Observations (Deep Learning)
+- MLP achieves competitive performance on the NSL-KDD dataset  
+- ROC-AUC confirms strong classification capability  
+- SHAP explanations are more stable and reliable  
+- LIME provides local insights but lacks consistency  
+- Deep learning complements traditional ML models in intrusion detection
 
 ## XAI Methods
 - **SHAP** (SHapley Additive exPlanations) — TreeExplainer
@@ -58,7 +97,7 @@ The deep learning pipeline generates the following outputs in the `results/` dir
 - Spearman Rank Correlation
 - Feature Sign Agreement
 
-## Results
+## Machine Learning Results & Interpretability 
 
 ### Model Performance Comparison
 ![Model Performance](results/compare_model_performance.png)
@@ -84,7 +123,7 @@ The deep learning pipeline generates the following outputs in the `results/` dir
 ### Multi-Metric Stability Comparison
 ![Stability Metrics](results/compare_stability_metrics.png)
 
-## Key Findings
+## Key Findings & Observations
 1. **SHAP is significantly more stable than LIME** — cosine similarity ~0.7 vs ~0.3 under perturbation
 2. **Stability degrades with noise** for both methods, as expected
 3. **GradientBoosting** has the most stable SHAP explanations on UNSW-NB15 (cos=0.83)
