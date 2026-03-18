@@ -10,6 +10,8 @@ from tensorflow.keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve, auc 
+import shap
 
 
 print("Loading NSL-KDD dataset...")
@@ -102,19 +104,55 @@ plt.legend()
 plt.savefig("results/training_loss_dl.png")
 plt.close()
 
-preds = model.predict(X_test)
-preds = (preds > 0.5).astype(int)
+probs = model.predict(X_test)
+preds = (probs > 0.5).astype(int)
 
 acc = accuracy_score(y_test, preds)
 prec = precision_score(y_test, preds)
 rec = recall_score(y_test, preds)
 f1 = f1_score(y_test, preds)
 
+# ROC Curve
+fpr, tpr, _ = roc_curve(y_test, preds)
+roc_auc = auc(fpr, tpr)
+
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
+plt.plot([0,1],[0,1],'--')
+
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve - Deep Learning NIDS")
+plt.legend()
+
+plt.savefig("results/dl_roc_curve.png")
+plt.close()
+
+print("ROC-AUC:", roc_auc)
+
 print("\nResults")
 print("Accuracy:", acc)
 print("Precision:", prec)
 print("Recall:", rec)
 print("F1 Score:", f1)
+
+#SHAP explanation for MLP
+print("Generating SHAP explanations...")
+
+sample_X = X_test[:100]
+
+explainer = shap.Explainer(model, X_train)
+shap_values = explainer(sample_X)
+
+# Summary plot
+shap.summary_plot(shap_values, sample_X, show=False)
+
+plt.savefig("results/shap_dl_summary.png")
+plt.close()
+
+print("SHAP summary saved.")
 
 results = pd.DataFrame({
     "Model": ["Deep Learning MLP"],
