@@ -89,6 +89,62 @@ def load_nsl_kdd(data_dir="datasets"):
     return X_train, X_test, y_train.reset_index(drop=True), y_test.reset_index(drop=True), scaler
 
 
+def load_unsw_nb15_multiclass(data_dir="datasets"):
+    """Load UNSW-NB15 with attack_cat for multi-class. Returns X_train, X_test, y_bin, y_attack, le_attack, scaler."""
+    train_path = f"{data_dir}/UNSW_NB15_training-set.csv"
+    df = pd.read_csv(train_path)
+    df = df.drop(columns=["id"], errors="ignore")
+    y_bin = df["label"]
+    y_attack = df["attack_cat"].astype(str)
+    X = df.drop(columns=["label", "attack_cat"], errors="ignore")
+    categorical_cols = ["proto", "service", "state"]
+    for col in categorical_cols:
+        if col in X.columns:
+            le = LabelEncoder()
+            X[col] = le.fit_transform(X[col].astype(str))
+    X_train, X_test, y_bin_tr, y_bin_te, y_att_tr, y_att_te = train_test_split(
+        X, y_bin, y_attack, test_size=0.3, random_state=42, stratify=y_bin
+    )
+    le_attack = LabelEncoder()
+    le_attack.fit(pd.concat([y_att_tr, y_att_te]))
+    y_attack_train = le_attack.transform(y_att_tr)
+    y_attack_test = le_attack.transform(y_att_te)
+    scaler = StandardScaler()
+    X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X.columns, index=X_train.index)
+    X_test = pd.DataFrame(scaler.transform(X_test), columns=X.columns, index=X_test.index)
+    return X_train, X_test, y_bin_tr.reset_index(drop=True), y_bin_te.reset_index(drop=True), np.array(y_attack_train), np.array(y_attack_test), le_attack, scaler
+
+
+def load_nsl_kdd_multiclass(data_dir="datasets"):
+    """Load NSL-KDD with attack type for multi-class. Returns X_train, X_test, y_bin, y_attack, le_attack, scaler."""
+    train_path = f"{data_dir}/KDDTrain+.txt"
+    test_path = f"{data_dir}/KDDTest+.txt"
+    df_train = pd.read_csv(train_path, header=None, names=NSL_KDD_COLUMNS)
+    df_test = pd.read_csv(test_path, header=None, names=NSL_KDD_COLUMNS)
+    df_train = df_train.drop(columns=["difficulty"])
+    df_test = df_test.drop(columns=["difficulty"])
+    raw_label_train = df_train["label"].astype(str)
+    raw_label_test = df_test["label"].astype(str)
+    y_bin_train = (df_train["label"] != "normal").astype(int)
+    y_bin_test = (df_test["label"] != "normal").astype(int)
+    X_train = df_train.drop(columns=["label"])
+    X_test = df_test.drop(columns=["label"])
+    for col in NSL_KDD_CAT_COLS:
+        le = LabelEncoder()
+        combined = pd.concat([X_train[col], X_test[col]])
+        le.fit(combined.astype(str))
+        X_train[col] = le.transform(X_train[col].astype(str))
+        X_test[col] = le.transform(X_test[col].astype(str))
+    le_attack = LabelEncoder()
+    le_attack.fit(pd.concat([raw_label_train, raw_label_test]))
+    y_attack_train = le_attack.transform(raw_label_train)
+    y_attack_test = le_attack.transform(raw_label_test)
+    scaler = StandardScaler()
+    X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+    X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+    return X_train, X_test, y_bin_train.reset_index(drop=True), y_bin_test.reset_index(drop=True), np.array(y_attack_train), np.array(y_attack_test), le_attack, scaler
+
+
 def load_dataset(name, data_dir="datasets"):
     """Load a dataset by name. Returns X_train, X_test, y_train, y_test, scaler."""
     loaders = {

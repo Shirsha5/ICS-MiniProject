@@ -1,10 +1,14 @@
-pandas
-numpy
-scikit-learn
-xgboost
-shap
-lime
-matplotlib
-seaborn
-scipy
-joblib
+# Python 3.11 recommended (3.10-3.12 also supported)
+pandas>=2.0,<3
+numpy>=1.24,<2
+scikit-learn>=1.3,<2
+xgboost>=2.0,<3
+shap>=0.43,<1
+lime>=0.2,<1
+matplotlib>=3.7,<4
+seaborn>=0.12,<1
+scipy>=1.11,<2
+joblib>=1.3,<2
+
+# Optional: GPU autoencoder (autoencoder_nids.py uses TF when available; Python 3.10-3.12)
+# tensorflow>=2.12
