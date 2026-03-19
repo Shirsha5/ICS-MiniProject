@@ -60,8 +60,38 @@ Run the three analysis scripts first, then `plot_extended_results.py` for one co
 Random Forest, XGBoost, Decision Tree, Gradient Boosting.
 
 ## Deep Learning (NSL-KDD)
-MLP in **deep_learning_nids.py**; SHAP + LIME. See **results/** for confusion matrix, ROC, training loss, shap_dl_summary, lime_dl_explanation.
+To complement the ML-based analysis, deep learning models were implemented on the NSL-KDD dataset and evaluated for the XAI methods.
 
+### Models Implemented
+- Multi-Layer Perceptron (MLP)
+- 1D Convolutional Neural Network (CNN)
+
+### Key Results
+
+- Both MLP and CNN achieve **comparable performance** across Accuracy, Precision, Recall, and F1-score  
+- CNN shows a **slightly higher ROC-AUC**, indicating improved class separability  
+- CNN incurs **significantly higher training time**, making MLP more efficient  
+
+### Explainability (Deep Learning)
+
+- **SHAP (KernelExplainer)** applied to neural networks  
+- **LIME** used for local interpretability  
+
+**Observations:**
+- SHAP explanations for CNN are highly concentrated near zero → indicates distributed feature importance  
+- MLP explanations are more interpretable compared to CNN  
+- LIME remains sensitive to perturbations, aligning with earlier findings
+
+### Generated Outputs (find in /results)
+
+- `dl_model_comparison.csv`
+- `dl_comparison_plot.png`
+- `confusion_matrix_dl.png`, `confusion_matrix_cnn.png`
+- `roc_curve_cnn.png`, `dl_roc_curve.png`
+- `training_loss_dl.png`, `training_loss_cnn.png`
+- `shap_dl_summary.png`, `shap_cnn_summary.png`
+- `lime_dl_explanation.png`, `lime_cnn_explanation.png`
+  
 ## XAI Methods
 - **SHAP** (TreeExplainer for tree models)
 - **LIME**
